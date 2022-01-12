@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
+	"github.com/lozhkindm/celeritas/render"
 	"log"
 	"net/http"
 	"os"
@@ -21,6 +22,7 @@ type Celeritas struct {
 	ErrorLog *log.Logger
 	RootPath string
 	Routes   *chi.Mux
+	Render   *render.Render
 	config   config
 }
 
@@ -45,14 +47,13 @@ func (c *Celeritas) New(rootPath string) error {
 		return err
 	}
 
-	infoLog, errorLog := c.startLoggers()
-	c.InfoLog = infoLog
-	c.ErrorLog = errorLog
+	c.createLoggers()
 	c.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
 	c.Version = version
 	c.RootPath = rootPath
 	c.config = config{port: os.Getenv("PORT"), renderer: os.Getenv("RENDERER")}
 	c.Routes = c.routes().(*chi.Mux)
+	c.createRenderer()
 
 	return nil
 }
@@ -89,10 +90,15 @@ func (c *Celeritas) checkDotEnv(path string) error {
 	return nil
 }
 
-func (c *Celeritas) startLoggers() (*log.Logger, *log.Logger) {
-	var infoLog *log.Logger
-	var errorLog *log.Logger
-	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	errorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
-	return infoLog, errorLog
+func (c *Celeritas) createLoggers() {
+	c.InfoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	c.ErrorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+}
+
+func (c *Celeritas) createRenderer() {
+	c.Render = &render.Render{
+		Renderer: c.config.renderer,
+		RootPath: c.RootPath,
+		Port:     c.config.port,
+	}
 }
