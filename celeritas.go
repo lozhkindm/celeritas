@@ -61,7 +61,7 @@ func (c *Celeritas) New(rootPath string) error {
 func (c *Celeritas) ListenAndServe() {
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", os.Getenv("PORT")),
-		Handler:      c.routes(),
+		Handler:      c.Routes,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 600 * time.Second,
 		IdleTimeout:  30 * time.Second,
