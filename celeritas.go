@@ -3,9 +3,11 @@ package celeritas
 import (
 	"fmt"
 	"github.com/CloudyKit/jet/v6"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/lozhkindm/celeritas/render"
+	"github.com/lozhkindm/celeritas/session"
 	"log"
 	"net/http"
 	"os"
@@ -24,13 +26,16 @@ type Celeritas struct {
 	RootPath string
 	Routes   *chi.Mux
 	Render   *render.Render
+	Session  *scs.SessionManager
 	JetViews *jet.Set
 	config   config
 }
 
 type config struct {
-	port     string
-	renderer string
+	port        string
+	renderer    string
+	cookie      cookieConfig
+	sessionType string
 }
 
 func (c *Celeritas) New(rootPath string) error {
@@ -53,13 +58,14 @@ func (c *Celeritas) New(rootPath string) error {
 	c.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
 	c.Version = version
 	c.RootPath = rootPath
-	c.config = config{port: os.Getenv("PORT"), renderer: os.Getenv("RENDERER")}
+	c.createConfig()
 	c.Routes = c.routes().(*chi.Mux)
 	c.JetViews = jet.NewSet(
 		jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath)),
 		jet.InDevelopmentMode(),
 	)
 	c.createRenderer()
+	c.createSession()
 
 	return nil
 }
@@ -101,6 +107,21 @@ func (c *Celeritas) createLoggers() {
 	c.ErrorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
+func (c *Celeritas) createConfig() {
+	c.config = config{
+		port:     os.Getenv("PORT"),
+		renderer: os.Getenv("RENDERER"),
+		cookie: cookieConfig{
+			name:     os.Getenv("COOKIE_NAME"),
+			lifetime: os.Getenv("COOKIE_LIFETIME"),
+			persist:  os.Getenv("COOKIE_PERSISTS"),
+			secure:   os.Getenv("COOKIE_SECURE"),
+			domain:   os.Getenv("COOKIE_DOMAIN"),
+		},
+		sessionType: os.Getenv("SESSION_TYPE"),
+	}
+}
+
 func (c *Celeritas) createRenderer() {
 	c.Render = &render.Render{
 		Renderer: c.config.renderer,
@@ -108,4 +129,16 @@ func (c *Celeritas) createRenderer() {
 		Port:     c.config.port,
 		JetViews: c.JetViews,
 	}
+}
+
+func (c *Celeritas) createSession() {
+	s := session.Session{
+		CookieLifetime: c.config.cookie.lifetime,
+		CookiePersist:  c.config.cookie.persist,
+		CookieName:     c.config.cookie.name,
+		CookieDomain:   c.config.cookie.domain,
+		CookieSecure:   c.config.cookie.secure,
+		SessionType:    c.config.sessionType,
+	}
+	c.Session = s.Init()
 }
