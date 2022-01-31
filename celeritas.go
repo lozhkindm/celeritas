@@ -27,6 +27,7 @@ type Celeritas struct {
 	Routes   *chi.Mux
 	Render   *render.Render
 	Session  *scs.SessionManager
+	DB       Database
 	JetViews *jet.Set
 	config   config
 }
@@ -36,6 +37,7 @@ type config struct {
 	renderer    string
 	cookie      cookieConfig
 	sessionType string
+	db          dbConfig
 }
 
 func (c *Celeritas) New(rootPath string) error {
@@ -55,6 +57,7 @@ func (c *Celeritas) New(rootPath string) error {
 	}
 
 	c.createLoggers()
+	c.createDB()
 	c.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
 	c.Version = version
 	c.RootPath = rootPath
@@ -71,6 +74,11 @@ func (c *Celeritas) New(rootPath string) error {
 }
 
 func (c *Celeritas) ListenAndServe() {
+	defer func() {
+		if err := c.DB.Pool.Close(); err != nil {
+			c.ErrorLog.Fatal(err)
+		}
+	}()
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", os.Getenv("PORT")),
 		Handler:      c.Routes,
@@ -119,6 +127,10 @@ func (c *Celeritas) createConfig() {
 			domain:   os.Getenv("COOKIE_DOMAIN"),
 		},
 		sessionType: os.Getenv("SESSION_TYPE"),
+		db: dbConfig{
+			dsn:      c.buildDSN(),
+			database: os.Getenv("DATABASE_TYPE"),
+		},
 	}
 }
 
@@ -141,4 +153,37 @@ func (c *Celeritas) createSession() {
 		SessionType:    c.config.sessionType,
 	}
 	c.Session = s.Init()
+}
+
+func (c *Celeritas) buildDSN() string {
+	var dsn string
+
+	switch os.Getenv("DATABASE_TYPE") {
+	case "postgres", "postgresql":
+		dsn = fmt.Sprintf(
+			"host=%s port=%s user=%s dbname=%s sslmode=%s timezone=UTC connect_timeout=5",
+			os.Getenv("DATABASE_HOST"),
+			os.Getenv("DATABASE_PORT"),
+			os.Getenv("DATABASE_USER"),
+			os.Getenv("DATABASE_NAME"),
+			os.Getenv("DATABASE_SSL_MODE"),
+		)
+		if pass := os.Getenv("DATABASE_PASS"); pass != "" {
+			dsn = fmt.Sprintf("%s password=%s", dsn, pass)
+		}
+	default:
+
+	}
+
+	return dsn
+}
+
+func (c *Celeritas) createDB() {
+	if dbType := os.Getenv("DATABASE_TYPE"); dbType != "" {
+		db, err := c.OpenDB(dbType, c.buildDSN())
+		if err != nil {
+			c.ErrorLog.Fatalln(err)
+		}
+		c.DB = Database{DataType: dbType, Pool: db}
+	}
 }
