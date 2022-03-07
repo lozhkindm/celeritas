@@ -3,10 +3,12 @@ package render
 import (
 	"errors"
 	"fmt"
-	"github.com/CloudyKit/jet/v6"
 	"html/template"
 	"net/http"
 	"strings"
+
+	"github.com/CloudyKit/jet/v6"
+	"github.com/alexedwards/scs/v2"
 )
 
 type Render struct {
@@ -16,6 +18,7 @@ type Render struct {
 	Port       string
 	ServerName string
 	JetViews   *jet.Set
+	Session    *scs.SessionManager
 }
 
 type TemplateData struct {
@@ -73,6 +76,7 @@ func (r *Render) jetPage(w http.ResponseWriter, req *http.Request, view string, 
 	if data != nil {
 		td = data.(*TemplateData)
 	}
+	r.defaultData(td, req)
 
 	tmpl, err := r.JetViews.GetTemplate(fmt.Sprintf("%s.jet", view))
 	if err != nil {
@@ -84,4 +88,14 @@ func (r *Render) jetPage(w http.ResponseWriter, req *http.Request, view string, 
 	}
 
 	return nil
+}
+
+func (r *Render) defaultData(td *TemplateData, req *http.Request) {
+	td.Secure = r.Secure
+	td.ServerName = r.ServerName
+	td.Port = r.Port
+
+	if r.Session.Exists(req.Context(), "userID") {
+		td.IsAuthenticated = true
+	}
 }

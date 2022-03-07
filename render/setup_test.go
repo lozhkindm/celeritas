@@ -1,11 +1,12 @@
 package render
 
 import (
-	"github.com/CloudyKit/jet/v6"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/CloudyKit/jet/v6"
 )
 
 var views = jet.NewSet(

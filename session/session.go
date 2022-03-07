@@ -1,11 +1,12 @@
 package session
 
 import (
-	"github.com/alexedwards/scs/v2"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/alexedwards/scs/v2"
 )
 
 type Session struct {

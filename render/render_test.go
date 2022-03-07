@@ -1,8 +1,6 @@
 package render
 
-import (
-	"testing"
-)
+import "testing"
 
 var pageData = []struct {
 	name          string

@@ -1,9 +1,10 @@
 package session
 
 import (
-	"github.com/alexedwards/scs/v2"
 	"reflect"
 	"testing"
+
+	"github.com/alexedwards/scs/v2"
 )
 
 func TestSession_Init(t *testing.T) {

@@ -2,17 +2,18 @@ package celeritas
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/CloudyKit/jet/v6"
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/lozhkindm/celeritas/render"
 	"github.com/lozhkindm/celeritas/session"
-	"log"
-	"net/http"
-	"os"
-	"strconv"
-	"time"
 )
 
 const version = "1.0.0"
@@ -67,8 +68,8 @@ func (c *Celeritas) New(rootPath string) error {
 		jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath)),
 		jet.InDevelopmentMode(),
 	)
-	c.createRenderer()
 	c.createSession()
+	c.createRenderer()
 
 	return nil
 }
@@ -140,6 +141,7 @@ func (c *Celeritas) createRenderer() {
 		RootPath: c.RootPath,
 		Port:     c.config.port,
 		JetViews: c.JetViews,
+		Session:  c.Session,
 	}
 }
 
