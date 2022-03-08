@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="celeritas" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="celeritas" />
+    <working_directory value="$PROJECT_DIR$" />
+    <kind value="FILE" />
+    <package value="github.com/lozhkindm/celeritas" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/cli/main.go" />
+    <output_directory value="$PROJECT_DIR$/../celeritas-app" />
+    <option name="run" value="false" />
+    <method v="2" />
+  </configuration>
+</component>
