@@ -24,6 +24,13 @@ func main() {
 		showHelp()
 	case "version":
 		color.Yellow("Application version: %s", version)
+	case "make":
+		if arg2 == "" {
+			exitGracefully(errors.New("make requires a subcommand: (migration|model|handler)"))
+		}
+		if err := doMake(arg2, arg3); err != nil {
+			exitGracefully(err)
+		}
 	default:
 		fmt.Println(arg2, arg3)
 	}
@@ -46,7 +53,6 @@ func validateInput() (string, string, string, error) {
 			arg3 = os.Args[3]
 		}
 	} else {
-		color.Red("Error: command required")
 		showHelp()
 		err = errors.New("command required")
 	}

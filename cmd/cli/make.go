@@ -1,0 +1,22 @@
+package main
+
+import (
+	"errors"
+	"fmt"
+	"time"
+)
+
+func doMake(arg2, arg3 string) error {
+	switch arg2 {
+	case "migration":
+		dbType := cel.DB.DataType
+		if arg3 == "" {
+			exitGracefully(errors.New("you must give the migration a name"))
+		}
+		filename := fmt.Sprintf("%d_%s", time.Now().UnixMicro(), arg3)
+		upFile := fmt.Sprintf("%s/migrations/%s.%s.up.sql", cel.RootPath, filename, dbType)
+		downFile := fmt.Sprintf("%s/migrations/%s.%s.down.sql", cel.RootPath, filename, dbType)
+		_, _ = upFile, downFile
+	}
+	return nil
+}
