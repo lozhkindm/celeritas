@@ -94,6 +94,29 @@ func (c *Celeritas) ListenAndServe() {
 	}
 }
 
+func (c *Celeritas) BuildDSN() string {
+	var dsn string
+
+	switch os.Getenv("DATABASE_TYPE") {
+	case "postgres", "postgresql":
+		dsn = fmt.Sprintf(
+			"host=%s port=%s user=%s dbname=%s sslmode=%s timezone=UTC connect_timeout=5",
+			os.Getenv("DATABASE_HOST"),
+			os.Getenv("DATABASE_PORT"),
+			os.Getenv("DATABASE_USER"),
+			os.Getenv("DATABASE_NAME"),
+			os.Getenv("DATABASE_SSL_MODE"),
+		)
+		if pass := os.Getenv("DATABASE_PASS"); pass != "" {
+			dsn = fmt.Sprintf("%s password=%s", dsn, pass)
+		}
+	default:
+
+	}
+
+	return dsn
+}
+
 func (c *Celeritas) init(p initPaths) error {
 	root := p.rootPath
 	for _, path := range p.folderNames {
@@ -129,7 +152,7 @@ func (c *Celeritas) createConfig() {
 		},
 		sessionType: os.Getenv("SESSION_TYPE"),
 		db: dbConfig{
-			dsn:      c.buildDSN(),
+			dsn:      c.BuildDSN(),
 			database: os.Getenv("DATABASE_TYPE"),
 		},
 	}
@@ -157,32 +180,9 @@ func (c *Celeritas) createSession() {
 	c.Session = s.Init()
 }
 
-func (c *Celeritas) buildDSN() string {
-	var dsn string
-
-	switch os.Getenv("DATABASE_TYPE") {
-	case "postgres", "postgresql":
-		dsn = fmt.Sprintf(
-			"host=%s port=%s user=%s dbname=%s sslmode=%s timezone=UTC connect_timeout=5",
-			os.Getenv("DATABASE_HOST"),
-			os.Getenv("DATABASE_PORT"),
-			os.Getenv("DATABASE_USER"),
-			os.Getenv("DATABASE_NAME"),
-			os.Getenv("DATABASE_SSL_MODE"),
-		)
-		if pass := os.Getenv("DATABASE_PASS"); pass != "" {
-			dsn = fmt.Sprintf("%s password=%s", dsn, pass)
-		}
-	default:
-
-	}
-
-	return dsn
-}
-
 func (c *Celeritas) createDB() {
 	if dbType := os.Getenv("DATABASE_TYPE"); dbType != "" {
-		db, err := c.OpenDB(dbType, c.buildDSN())
+		db, err := c.OpenDB(dbType, c.BuildDSN())
 		if err != nil {
 			c.ErrorLog.Fatalln(err)
 		}

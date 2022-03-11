@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/fatih/color"
@@ -14,6 +13,8 @@ const version = "1.0.0"
 var cel celeritas.Celeritas
 
 func main() {
+	var message string
+
 	arg1, arg2, arg3, err := validateInput()
 	if err != nil {
 		exitGracefully(err)
@@ -26,6 +27,14 @@ func main() {
 		showHelp()
 	case "version":
 		color.Yellow("Application version: %s", version)
+	case "migrate":
+		if arg2 == "" {
+			arg2 = "up"
+		}
+		if err := doMigrate(arg2, arg3); err != nil {
+			exitGracefully(err)
+		}
+		message = "Migrations complete!"
 	case "make":
 		if arg2 == "" {
 			exitGracefully(errors.New("make requires a subcommand: (migration|model|handler)"))
@@ -34,8 +43,10 @@ func main() {
 			exitGracefully(err)
 		}
 	default:
-		fmt.Println(arg2, arg3)
+		showHelp()
 	}
+
+	exitGracefully(nil, message)
 }
 
 func validateInput() (string, string, string, error) {
