@@ -73,13 +73,6 @@ func validateInput() (string, string, string, error) {
 	return arg1, arg2, arg3, err
 }
 
-func showHelp() {
-	color.Yellow(`Available commands:
-	help         - show the help commands
-	version      - print application version
-	`)
-}
-
 func exitGracefully(err error, msg ...string) {
 	var m string
 
