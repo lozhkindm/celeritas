@@ -8,18 +8,20 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func setup() {
+func setup() error {
 	if err := godotenv.Load(); err != nil {
-		exitGracefully(err)
+		return err
 	}
 
 	path, err := os.Getwd()
 	if err != nil {
-		exitGracefully(err)
+		return err
 	}
 
 	cel.RootPath = path
 	cel.DB.DataType = os.Getenv("DATABASE_TYPE")
+
+	return nil
 }
 
 func getDSN() string {

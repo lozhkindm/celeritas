@@ -20,7 +20,9 @@ func main() {
 		exitGracefully(err)
 	}
 
-	setup()
+	if err := setup(); err != nil {
+		exitGracefully(err)
+	}
 
 	switch arg1 {
 	case "help":
