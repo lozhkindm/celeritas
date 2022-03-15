@@ -25,5 +25,17 @@ func doAuth() error {
 		return err
 	}
 
+	userTmpl := "templates/data/user.go.txt"
+	userFile := fmt.Sprintf("%s/data/user.go", cel.RootPath)
+	if err := copyFileFromTemplate(userTmpl, userFile); err != nil {
+		return err
+	}
+
+	tokenTmpl := "templates/data/token.go.txt"
+	tokenFile := fmt.Sprintf("%s/data/token.go", cel.RootPath)
+	if err := copyFileFromTemplate(tokenTmpl, tokenFile); err != nil {
+		return err
+	}
+
 	return nil
 }
