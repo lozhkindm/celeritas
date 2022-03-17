@@ -26,14 +26,25 @@ func doAuth() error {
 	}
 
 	userTmpl := "templates/data/user.go.txt"
+	tokenTmpl := "templates/data/token.go.txt"
 	userFile := fmt.Sprintf("%s/data/user.go", cel.RootPath)
+	tokenFile := fmt.Sprintf("%s/data/token.go", cel.RootPath)
 	if err := copyFileFromTemplate(userTmpl, userFile); err != nil {
 		return err
 	}
-
-	tokenTmpl := "templates/data/token.go.txt"
-	tokenFile := fmt.Sprintf("%s/data/token.go", cel.RootPath)
 	if err := copyFileFromTemplate(tokenTmpl, tokenFile); err != nil {
+		return err
+	}
+
+	// create auth middlewares
+	authMwTmpl := "templates/middlewares/auth.go.txt"
+	tokenMwTmpl := "templates/middlewares/auth-token.go.txt"
+	authMwFile := fmt.Sprintf("%s/middlewares/auth.go", cel.RootPath)
+	tokenMwFile := fmt.Sprintf("%s/middlewares/auth-token.go", cel.RootPath)
+	if err := copyFileFromTemplate(authMwTmpl, authMwFile); err != nil {
+		return err
+	}
+	if err := copyFileFromTemplate(tokenMwTmpl, tokenMwFile); err != nil {
 		return err
 	}
 
