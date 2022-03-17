@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 func doAuth() error {
@@ -47,6 +49,14 @@ func doAuth() error {
 	if err := copyFileFromTemplate(tokenMwTmpl, tokenMwFile); err != nil {
 		return err
 	}
+
+	color.Yellow("  - users, tokens, remember_tokens migrations created and executed")
+	color.Yellow("  - user and token models created")
+	color.Yellow("  - auth and auth-token middlewares created")
+	color.Yellow("")
+	color.Yellow("Don't forget:")
+	color.Yellow("1. Add user and token models in data/models.go")
+	color.Yellow("2. Add appropriate middlewares to your routes")
 
 	return nil
 }
