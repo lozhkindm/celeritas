@@ -176,6 +176,7 @@ func (c *Celeritas) createSession() {
 		CookieDomain:   c.config.cookie.domain,
 		CookieSecure:   c.config.cookie.secure,
 		SessionType:    c.config.sessionType,
+		DBPool:         c.DB.Pool,
 	}
 	c.Session = s.Init()
 }
