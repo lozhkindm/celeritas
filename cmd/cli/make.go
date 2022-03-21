@@ -3,10 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"time"
 
+	"github.com/gertd/go-pluralize"
 	"github.com/iancoleman/strcase"
 )
 
@@ -49,7 +49,36 @@ func doMake(arg2, arg3 string) error {
 		}
 
 		contents := strings.ReplaceAll(string(data), "$HANDLER_NAME$", strcase.ToCamel(arg3))
-		if err := ioutil.WriteFile(filename, []byte(contents), 0644); err != nil {
+		if err := copyDataToFile([]byte(contents), filename); err != nil {
+			return err
+		}
+	case "model":
+		if arg3 == "" {
+			return errors.New("you must give the model a name")
+		}
+
+		pl := pluralize.NewClient()
+		modelName, tableName := strings.ToLower(arg3), strings.ToLower(arg3)
+
+		if pl.IsPlural(arg3) {
+			modelName = pl.Singular(modelName)
+		} else {
+			tableName = pl.Plural(tableName)
+		}
+
+		filename := fmt.Sprintf("%s/data/%s.go", cel.RootPath, modelName)
+		if fileExists(filename) {
+			return errors.New(fmt.Sprintf("%s already exists", filename))
+		}
+
+		data, err := templateFS.ReadFile("templates/data/model.go.txt")
+		if err != nil {
+			return err
+		}
+
+		contents := strings.ReplaceAll(string(data), "$MODEL_NAME$", strcase.ToCamel(modelName))
+		contents = strings.ReplaceAll(contents, "$TABLE_NAME$", tableName)
+		if err := copyDataToFile([]byte(contents), filename); err != nil {
 			return err
 		}
 	}

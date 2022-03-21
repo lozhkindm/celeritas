@@ -1,0 +1,91 @@
+package data
+
+import (
+    "time"
+
+    up "github.com/upper/db/v4"
+)
+
+type $MODEL_NAME$ struct {
+    ID        int       `db:"id,omitempty"`
+    CreatedAt time.Time `db:"created_at"`
+    UpdatedAt time.Time `db:"updated_at"`
+}
+
+func (t *$MODEL_NAME$) Table() string {
+    return "$TABLE_NAME$"
+}
+
+func (t *$MODEL_NAME$) GetAll(cond up.Cond) ([]*$MODEL_NAME$, error) {
+    var all []*$MODEL_NAME$
+
+    coll := upper.Collection(t.Table())
+    res := coll.Find(cond)
+    if err := res.All(&all); err != nil {
+        return nil, err
+    }
+
+    return all, nil
+}
+
+func (t *$MODEL_NAME$) GetById(id int) (*$MODEL_NAME$, error) {
+	var one *$MODEL_NAME$
+
+	coll := upper.Collection(t.Table())
+	res := coll.Find(id)
+	if err := res.One(&one); err != nil {
+		return nil, err
+	}
+
+	return one, nil
+}
+
+func (t *$MODEL_NAME$) Update(m *$MODEL_NAME$) error {
+	m.UpdatedAt = time.Now()
+	coll := upper.Collection(t.Table())
+	res := coll.Find(m.ID)
+	if err := res.Update(&m); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *$MODEL_NAME$) Delete(id int) error {
+	coll := upper.Collection(t.Table())
+	res := coll.Find(id)
+	if err := res.Delete(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *$MODEL_NAME$) Insert(m *$MODEL_NAME$) (int, error) {
+	m.CreatedAt = time.Now()
+	m.UpdatedAt = time.Now()
+
+	coll := upper.Collection(t.Table())
+	res, err := coll.Insert(m)
+	if err != nil {
+		return 0, err
+	}
+
+	id := getInsertedID(res.ID())
+	return id, nil
+}
+
+func (t *$MODEL_NAME$) Builder(id int) ([]*$MODEL_NAME$, error) {
+    var res []*$MODEL_NAME$
+
+    coll := upper.Collection(t.Table())
+    err := coll.Session().
+        SQL().
+        SelectFrom(t.Table()).
+        Where("id > ?", id).
+        OrderBy("id").
+        All(&res)
+    if err != nil {
+        return nil, err
+    }
+
+    return res, nil
+}
