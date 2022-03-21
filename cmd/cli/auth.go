@@ -10,6 +10,13 @@ import (
 func doAuth() error {
 	// create auth migrations
 	dbType := cel.DB.DataType
+	if dbType == "mariadb" {
+		dbType = "mysql"
+	}
+	if dbType == "postgresql" {
+		dbType = "postgres"
+	}
+
 	filename := fmt.Sprintf("%d_create_auth_tables", time.Now().UnixMicro())
 	upFile := fmt.Sprintf("%s/migrations/%s.%s.up.sql", cel.RootPath, filename, dbType)
 	downFile := fmt.Sprintf("%s/migrations/%s.%s.down.sql", cel.RootPath, filename, dbType)

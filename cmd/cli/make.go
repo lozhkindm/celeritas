@@ -81,6 +81,10 @@ func doMake(arg2, arg3 string) error {
 		if err := copyDataToFile([]byte(contents), filename); err != nil {
 			return err
 		}
+	case "session":
+		if err := doSession(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
