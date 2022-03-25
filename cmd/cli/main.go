@@ -8,7 +8,7 @@ import (
 	"github.com/lozhkindm/celeritas"
 )
 
-const version = "1.0.2"
+const version = "1.0.3"
 
 var cel celeritas.Celeritas
 
