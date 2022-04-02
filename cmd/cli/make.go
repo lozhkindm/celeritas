@@ -6,12 +6,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/gertd/go-pluralize"
 	"github.com/iancoleman/strcase"
 )
 
 func doMake(arg2, arg3 string) error {
 	switch arg2 {
+	case "key":
+		rand := cel.RandStr(32)
+		color.Yellow("Encryption key: %s", rand)
 	case "migration":
 		if arg3 == "" {
 			return errors.New("you must give the migration a name")
