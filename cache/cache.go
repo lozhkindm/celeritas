@@ -35,3 +35,23 @@ func (rc *RedisCache) Has(key string) (bool, error) {
 	}
 	return found, err
 }
+
+func (rc *RedisCache) Get(key string) (interface{}, error) {
+	return nil, nil
+}
+
+func (rc *RedisCache) Set(key string, val interface{}, ttl ...int) error {
+	return nil
+}
+
+func (rc *RedisCache) Forget(key string) error {
+	return nil
+}
+
+func (rc *RedisCache) Empty() error {
+	return nil
+}
+
+func (rc *RedisCache) EmptyByMatch(pattern string) error {
+	return nil
+}

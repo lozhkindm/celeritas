@@ -8,12 +8,15 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/lozhkindm/celeritas/cache"
+	"github.com/lozhkindm/celeritas/render"
+	"github.com/lozhkindm/celeritas/session"
+
 	"github.com/CloudyKit/jet/v6"
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
+	"github.com/gomodule/redigo/redis"
 	"github.com/joho/godotenv"
-	"github.com/lozhkindm/celeritas/render"
-	"github.com/lozhkindm/celeritas/session"
 )
 
 const version = "1.0.0"
@@ -28,7 +31,8 @@ type Celeritas struct {
 	Routes        *chi.Mux
 	Render        *render.Render
 	Session       *scs.SessionManager
-	DB            Database
+	DB            database
+	Cache         cache.Cache
 	JetViews      *jet.Set
 	EncryptionKey string
 	config        config
@@ -40,6 +44,7 @@ type config struct {
 	cookie      cookieConfig
 	sessionType string
 	db          dbConfig
+	redis       redisConfig
 }
 
 func (c *Celeritas) New(rootPath string) error {
@@ -60,6 +65,7 @@ func (c *Celeritas) New(rootPath string) error {
 
 	c.createLoggers()
 	c.createDB()
+	c.createCache()
 	c.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
 	c.Version = version
 	c.RootPath = rootPath
@@ -157,6 +163,11 @@ func (c *Celeritas) createConfig() {
 			dsn:      c.BuildDSN(),
 			database: os.Getenv("DATABASE_TYPE"),
 		},
+		redis: redisConfig{
+			host:     os.Getenv("REDIS_HOST"),
+			password: os.Getenv("REDIS_PASSWORD"),
+			prefix:   os.Getenv("REDIS_PREFIX"),
+		},
 	}
 }
 
@@ -189,6 +200,38 @@ func (c *Celeritas) createDB() {
 		if err != nil {
 			c.ErrorLog.Fatalln(err)
 		}
-		c.DB = Database{DataType: dbType, Pool: db}
+		c.DB = database{DataType: dbType, Pool: db}
+	}
+}
+
+func (c *Celeritas) createCache() {
+	if os.Getenv("CACHE") == "redis" {
+		c.Cache = c.createRedisCacheClient()
+	}
+}
+
+func (c *Celeritas) createRedisCacheClient() *cache.RedisCache {
+	return &cache.RedisCache{
+		Conn:   c.createRedisPool(),
+		Prefix: c.config.redis.prefix,
+	}
+}
+
+func (c *Celeritas) createRedisPool() *redis.Pool {
+	return &redis.Pool{
+		MaxIdle:     50,
+		MaxActive:   10000,
+		IdleTimeout: time.Second * 240,
+		Dial: func() (redis.Conn, error) {
+			return redis.Dial(
+				"tcp",
+				c.config.redis.host,
+				redis.DialPassword(c.config.redis.password),
+			)
+		},
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			return err
+		},
 	}
 }
