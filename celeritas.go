@@ -221,7 +221,7 @@ func (c *Celeritas) createRedisPool() *redis.Pool {
 	return &redis.Pool{
 		MaxIdle:     50,
 		MaxActive:   10000,
-		IdleTimeout: time.Second * 240,
+		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			return redis.Dial(
 				"tcp",

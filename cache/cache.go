@@ -129,7 +129,7 @@ func (rc *RedisCache) EmptyByMatch(pattern string) error {
 	}
 
 	for _, key := range keys {
-		if err := rc.Forget(key); err != nil {
+		if _, err := conn.Do("DEL", key); err != nil {
 			return err
 		}
 	}
