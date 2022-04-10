@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -19,7 +20,7 @@ func (c *Celeritas) ReadJSON(w http.ResponseWriter, r *http.Request, data interf
 		return err
 	}
 
-	if err := dec.Decode(&struct{}{}); err != nil {
+	if err := dec.Decode(&struct{}{}); err != io.EOF {
 		return errors.New("body must only have a single json value")
 	}
 	return nil
