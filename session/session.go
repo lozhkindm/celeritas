@@ -9,7 +9,9 @@ import (
 
 	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/postgresstore"
+	"github.com/alexedwards/scs/redisstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/gomodule/redigo/redis"
 )
 
 type Session struct {
@@ -20,6 +22,7 @@ type Session struct {
 	CookieSecure   string
 	SessionType    string
 	DBPool         *sql.DB
+	RedisPool      *redis.Pool
 }
 
 func (s *Session) Init() *scs.SessionManager {
@@ -47,6 +50,7 @@ func (s *Session) Init() *scs.SessionManager {
 
 	switch strings.ToLower(s.SessionType) {
 	case "redis":
+		se.Store = redisstore.New(s.RedisPool)
 	case "mysql", "mariadb":
 		se.Store = mysqlstore.New(s.DBPool)
 	case "postgres", "postgresql":

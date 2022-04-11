@@ -189,7 +189,12 @@ func (c *Celeritas) createSession() {
 		CookieDomain:   c.config.cookie.domain,
 		CookieSecure:   c.config.cookie.secure,
 		SessionType:    c.config.sessionType,
-		DBPool:         c.DB.Pool,
+	}
+	switch s.SessionType {
+	case "redis":
+		s.RedisPool = c.Cache.(*cache.RedisCache).Conn
+	case "mysql", "mariadb", "postgres", "postgresql":
+		s.DBPool = c.DB.Pool
 	}
 	c.Session = s.Init()
 }
@@ -205,7 +210,7 @@ func (c *Celeritas) createDB() {
 }
 
 func (c *Celeritas) createCache() {
-	if os.Getenv("CACHE") == "redis" {
+	if os.Getenv("CACHE") == "redis" || os.Getenv("SESSION_TYPE") == "redis" {
 		c.Cache = c.createRedisCacheClient()
 	}
 }
