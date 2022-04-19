@@ -2,12 +2,12 @@ package cache
 
 import "testing"
 
-func TestRedisCache_Has(t *testing.T) {
-	if err := testRedisCache.Forget("test_has"); err != nil {
+func TestBadgerCache_Has(t *testing.T) {
+	if err := testBadgerCache.Forget("test_has"); err != nil {
 		t.Errorf("error while forgetting the key: %s", err)
 	}
 
-	found, err := testRedisCache.Has("test_has")
+	found, err := testBadgerCache.Has("test_has")
 	if err != nil {
 		t.Errorf("error while checking the key: %s", err)
 	}
@@ -16,11 +16,11 @@ func TestRedisCache_Has(t *testing.T) {
 		t.Errorf("key %q is found when it should not be", "test_has")
 	}
 
-	if err := testRedisCache.Set("test_has", "test_val"); err != nil {
+	if err := testBadgerCache.Set("test_has", "test_val"); err != nil {
 		t.Errorf("error while setting the key: %s", err)
 	}
 
-	found, err = testRedisCache.Has("test_has")
+	found, err = testBadgerCache.Has("test_has")
 	if err != nil {
 		t.Errorf("error while checking the key: %s", err)
 	}
@@ -30,12 +30,12 @@ func TestRedisCache_Has(t *testing.T) {
 	}
 }
 
-func TestRedisCache_Get(t *testing.T) {
-	if err := testRedisCache.Set("test_get", "test_val"); err != nil {
+func TestBadgerCache_Get(t *testing.T) {
+	if err := testBadgerCache.Set("test_get", "test_val"); err != nil {
 		t.Errorf("error while setting the key: %s", err)
 	}
 
-	val, err := testRedisCache.Get("test_get")
+	val, err := testBadgerCache.Get("test_get")
 	if err != nil {
 		t.Errorf("error while getting the key: %s", err)
 	}
@@ -45,16 +45,16 @@ func TestRedisCache_Get(t *testing.T) {
 	}
 }
 
-func TestRedisCache_Forget(t *testing.T) {
-	if err := testRedisCache.Set("test_forget", "test_val"); err != nil {
+func TestBadgerCache_EmptyCache_Forget(t *testing.T) {
+	if err := testBadgerCache.Set("test_forget", "test_val"); err != nil {
 		t.Errorf("error while setting the key: %s", err)
 	}
 
-	if err := testRedisCache.Forget("test_forget"); err != nil {
+	if err := testBadgerCache.Forget("test_forget"); err != nil {
 		t.Errorf("error while forgetting the key: %s", err)
 	}
 
-	found, err := testRedisCache.Has("test_forget")
+	found, err := testBadgerCache.Has("test_forget")
 	if err != nil {
 		t.Errorf("error while checking the key: %s", err)
 	}
@@ -64,16 +64,16 @@ func TestRedisCache_Forget(t *testing.T) {
 	}
 }
 
-func TestRedisCache_Empty(t *testing.T) {
-	if err := testRedisCache.Set("test_empty", "test_val"); err != nil {
+func TestBadgerCache_Empty(t *testing.T) {
+	if err := testBadgerCache.Set("test_empty", "test_val"); err != nil {
 		t.Errorf("error while setting the key: %s", err)
 	}
 
-	if err := testRedisCache.Empty(); err != nil {
+	if err := testBadgerCache.Empty(); err != nil {
 		t.Errorf("error while emptying: %s", err)
 	}
 
-	found, err := testRedisCache.Has("test_empty")
+	found, err := testBadgerCache.Has("test_empty")
 	if err != nil {
 		t.Errorf("error while checking the key: %s", err)
 	}
@@ -83,24 +83,24 @@ func TestRedisCache_Empty(t *testing.T) {
 	}
 }
 
-func TestRedisCache_EmptyByMatch(t *testing.T) {
-	if err := testRedisCache.Set("test_empty_bm1", "test_val"); err != nil {
+func TestBadgerCache_EmptyByMatch(t *testing.T) {
+	if err := testBadgerCache.Set("test_empty_bm1", "test_val"); err != nil {
 		t.Errorf("error while setting the key: %s", err)
 	}
 
-	if err := testRedisCache.Set("test_empty_bm2", "test_val"); err != nil {
+	if err := testBadgerCache.Set("test_empty_bm2", "test_val"); err != nil {
 		t.Errorf("error while setting the key: %s", err)
 	}
 
-	if err := testRedisCache.Set("test_keep", "test_val"); err != nil {
+	if err := testBadgerCache.Set("test_keep", "test_val"); err != nil {
 		t.Errorf("error while setting the key: %s", err)
 	}
 
-	if err := testRedisCache.EmptyByMatch("test_empty_bm"); err != nil {
+	if err := testBadgerCache.EmptyByMatch("test_empty_bm"); err != nil {
 		t.Errorf("error while emptying by match: %s", err)
 	}
 
-	found, err := testRedisCache.Has("test_empty_bm1")
+	found, err := testBadgerCache.Has("test_empty_bm1")
 	if err != nil {
 		t.Errorf("error while checking the key: %s", err)
 	}
@@ -108,7 +108,7 @@ func TestRedisCache_EmptyByMatch(t *testing.T) {
 		t.Errorf("key %q is found when it should not be", "test_empty_bm1")
 	}
 
-	found, err = testRedisCache.Has("test_empty_bm2")
+	found, err = testBadgerCache.Has("test_empty_bm2")
 	if err != nil {
 		t.Errorf("error while checking the key: %s", err)
 	}
@@ -116,7 +116,7 @@ func TestRedisCache_EmptyByMatch(t *testing.T) {
 		t.Errorf("key %q is found when it should not be", "test_empty_bm2")
 	}
 
-	found, err = testRedisCache.Has("test_keep")
+	found, err = testBadgerCache.Has("test_keep")
 	if err != nil {
 		t.Errorf("error while checking the key: %s", err)
 	}

@@ -85,7 +85,9 @@ func (bc *BadgerCache) emptyByMatch(pattern string) error {
 	deleteKeys := func(keysToDelete [][]byte) error {
 		return bc.Conn.Update(func(txn *badger.Txn) error {
 			for _, key := range keysToDelete {
-				return txn.Delete(key)
+				if err := txn.Delete(key); err != nil {
+					return err
+				}
 			}
 			return nil
 		})
@@ -98,6 +100,7 @@ func (bc *BadgerCache) emptyByMatch(pattern string) error {
 		opts.AllVersions = false
 		opts.PrefetchValues = false
 		iter := txn.NewIterator(opts)
+		defer iter.Close()
 
 		keysToDelete := make([][]byte, 0, collectSize)
 		keysCollected := 0
