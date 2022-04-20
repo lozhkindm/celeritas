@@ -14,9 +14,11 @@ import (
 
 	"github.com/CloudyKit/jet/v6"
 	"github.com/alexedwards/scs/v2"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/go-chi/chi/v5"
 	"github.com/gomodule/redigo/redis"
 	"github.com/joho/godotenv"
+	"github.com/robfig/cron/v3"
 )
 
 const version = "1.0.0"
@@ -35,6 +37,7 @@ type Celeritas struct {
 	Cache         cache.Cache
 	JetViews      *jet.Set
 	EncryptionKey string
+	Scheduler     *cron.Cron
 	config        config
 }
 
@@ -65,7 +68,9 @@ func (c *Celeritas) New(rootPath string) error {
 
 	c.createLoggers()
 	c.createDB()
-	c.createCache()
+	if err := c.createCache(); err != nil {
+		return err
+	}
 	c.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
 	c.Version = version
 	c.RootPath = rootPath
@@ -219,10 +224,28 @@ func (c *Celeritas) createDB() {
 	}
 }
 
-func (c *Celeritas) createCache() {
+func (c *Celeritas) createCache() error {
 	if os.Getenv("CACHE") == "redis" || os.Getenv("SESSION_TYPE") == "redis" {
 		c.Cache = c.createRedisCacheClient()
 	}
+	if os.Getenv("CACHE") == "badger" {
+		client, err := c.createBadgerCacheClient()
+		if err != nil {
+			return err
+		}
+
+		_, err = c.Scheduler.AddFunc("@daily", func() {
+			if err := client.Conn.RunValueLogGC(0.7); err != nil {
+				c.ErrorLog.Println(err)
+			}
+		})
+		if err != nil {
+			return err
+		}
+
+		c.Cache = client
+	}
+	return nil
 }
 
 func (c *Celeritas) createRedisCacheClient() *cache.RedisCache {
@@ -230,6 +253,14 @@ func (c *Celeritas) createRedisCacheClient() *cache.RedisCache {
 		Conn:   c.createRedisPool(),
 		Prefix: c.config.redis.prefix,
 	}
+}
+
+func (c *Celeritas) createBadgerCacheClient() (*cache.BadgerCache, error) {
+	conn, err := c.createBadgerConn()
+	if err != nil {
+		return nil, err
+	}
+	return &cache.BadgerCache{Conn: conn}, nil
 }
 
 func (c *Celeritas) createRedisPool() *redis.Pool {
@@ -249,4 +280,8 @@ func (c *Celeritas) createRedisPool() *redis.Pool {
 			return err
 		},
 	}
+}
+
+func (c *Celeritas) createBadgerConn() (*badger.DB, error) {
+	return badger.Open(badger.DefaultOptions(fmt.Sprintf("%s/tmp/badger", c.RootPath)))
 }
