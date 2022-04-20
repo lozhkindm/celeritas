@@ -39,6 +39,8 @@ type Celeritas struct {
 	EncryptionKey string
 	Scheduler     *cron.Cron
 	config        config
+	redisPool     *redis.Pool
+	badgerConn    *badger.DB
 }
 
 type config struct {
@@ -68,6 +70,7 @@ func (c *Celeritas) New(rootPath string) error {
 
 	c.createLoggers()
 	c.createDB()
+	c.Scheduler = cron.New()
 	if err := c.createCache(); err != nil {
 		return err
 	}
@@ -99,8 +102,14 @@ func (c *Celeritas) prepareJetViews(rootPath string) {
 
 func (c *Celeritas) ListenAndServe() {
 	defer func() {
-		if err := c.DB.Pool.Close(); err != nil {
-			c.ErrorLog.Fatal(err)
+		if c.DB.Pool != nil {
+			_ = c.DB.Pool.Close()
+		}
+		if c.redisPool != nil {
+			_ = c.redisPool.Close()
+		}
+		if c.badgerConn != nil {
+			_ = c.badgerConn.Close()
 		}
 	}()
 	srv := &http.Server{
@@ -207,7 +216,7 @@ func (c *Celeritas) createSession() {
 	}
 	switch s.SessionType {
 	case "redis":
-		s.RedisPool = c.Cache.(*cache.RedisCache).Conn
+		s.RedisPool = c.redisPool
 	case "mysql", "mariadb", "postgres", "postgresql":
 		s.DBPool = c.DB.Pool
 	}
@@ -218,7 +227,7 @@ func (c *Celeritas) createDB() {
 	if dbType := os.Getenv("DATABASE_TYPE"); dbType != "" {
 		db, err := c.OpenDB(dbType, c.BuildDSN())
 		if err != nil {
-			c.ErrorLog.Fatalln(err)
+			c.ErrorLog.Fatal(err)
 		}
 		c.DB = database{DataType: dbType, Pool: db}
 	}
@@ -249,8 +258,9 @@ func (c *Celeritas) createCache() error {
 }
 
 func (c *Celeritas) createRedisCacheClient() *cache.RedisCache {
+	c.redisPool = c.createRedisPool()
 	return &cache.RedisCache{
-		Conn:   c.createRedisPool(),
+		Conn:   c.redisPool,
 		Prefix: c.config.redis.prefix,
 	}
 }
@@ -260,7 +270,8 @@ func (c *Celeritas) createBadgerCacheClient() (*cache.BadgerCache, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &cache.BadgerCache{Conn: conn}, nil
+	c.badgerConn = conn
+	return &cache.BadgerCache{Conn: c.badgerConn}, nil
 }
 
 func (c *Celeritas) createRedisPool() *redis.Pool {
