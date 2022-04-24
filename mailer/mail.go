@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"io/ioutil"
+	"path/filepath"
 	"time"
 
+	apimail "github.com/ainsleyclark/go-mail"
 	"github.com/vanng822/go-premailer/premailer"
 	mail "github.com/xhit/go-simple-mail/v2"
 )
@@ -24,7 +27,7 @@ type Mail struct {
 	Results      chan Result
 	API          string
 	APIKey       string
-	ApiUrl       string
+	APIUrl       string
 }
 
 type Message struct {
@@ -51,8 +54,57 @@ func (m *Mail) ListenForMail() {
 }
 
 func (m *Mail) Send(msg Message) error {
-	// TODO: select API or SMTP
+	if len(m.API) > 0 && len(m.APIKey) > 0 && len(m.APIUrl) > 0 && m.API != "smtp" {
+		return m.selectAPI(msg)
+	}
 	return m.SendSMTPMessage(msg)
+}
+
+func (m *Mail) SendViaAPI(msg Message, transport string) error {
+	if msg.From == "" {
+		msg.From = m.FromAddress
+	}
+	if msg.FromName == "" {
+		msg.FromName = m.FromName
+	}
+
+	cfg := apimail.Config{
+		URL:         m.APIUrl,
+		APIKey:      m.APIKey,
+		Domain:      m.Domain,
+		FromAddress: msg.From,
+		FromName:    msg.FromName,
+	}
+
+	driver, err := apimail.NewClient(transport, cfg)
+	if err != nil {
+		return err
+	}
+
+	html, err := m.buildHTMLMessage(msg)
+	if err != nil {
+		return err
+	}
+	plain, err := m.buildPlainTextMessage(msg)
+	if err != nil {
+		return err
+	}
+
+	tx := &apimail.Transmission{
+		Recipients: []string{msg.To},
+		Subject:    msg.Subject,
+		HTML:       html,
+		PlainText:  plain,
+	}
+
+	if err := m.addAPIAttachments(msg, tx); err != nil {
+		return err
+	}
+	if _, err := driver.Send(tx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *Mail) SendSMTPMessage(msg Message) error {
@@ -96,6 +148,35 @@ func (m *Mail) SendSMTPMessage(msg Message) error {
 	}
 
 	return email.Send(client)
+}
+
+func (m *Mail) selectAPI(msg Message) error {
+	switch m.API {
+	case "mailgun", "sparkpost", "sendgrid":
+		return m.SendViaAPI(msg, m.API)
+	default:
+		return fmt.Errorf("unknown api %q", m.API)
+	}
+}
+
+func (m *Mail) addAPIAttachments(msg Message, tx *apimail.Transmission) error {
+	if len(msg.Attachments) > 0 {
+		attachments := make([]apimail.Attachment, len(msg.Attachments))
+		for _, a := range msg.Attachments {
+			bts, err := ioutil.ReadFile(a)
+			if err != nil {
+				return err
+			}
+
+			att := apimail.Attachment{
+				Filename: filepath.Base(a),
+				Bytes:    bts,
+			}
+			attachments = append(attachments, att)
+		}
+		tx.Attachments = attachments
+	}
+	return nil
 }
 
 func (m *Mail) getEncryption(enc string) mail.Encryption {
