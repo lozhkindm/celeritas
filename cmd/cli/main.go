@@ -40,7 +40,7 @@ func main() {
 		message = "Migrations complete!"
 	case "make":
 		if arg2 == "" {
-			exitGracefully(errors.New("make requires a subcommand: (migration|model|handler)"))
+			exitGracefully(errors.New("make requires a subcommand: (migration|auth|handler|model|session|mail)"))
 		}
 		if err := doMake(arg2, arg3); err != nil {
 			exitGracefully(err)

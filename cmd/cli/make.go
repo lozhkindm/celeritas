@@ -89,6 +89,22 @@ func doMake(arg2, arg3 string) error {
 		if err := doSession(); err != nil {
 			return err
 		}
+	case "mail":
+		if arg3 == "" {
+			return errors.New("you must give the mail template a name")
+		}
+
+		htmlFile := fmt.Sprintf("%s/mails/%s.html.tmpl", cel.RootPath, strings.ToLower(arg3))
+		plainFile := fmt.Sprintf("%s/mails/%s.plain.tmpl", cel.RootPath, strings.ToLower(arg3))
+		htmlTmpl := "templates/mails/mail.html.txt"
+		plainTmpl := "templates/mails/mail.plain.txt"
+		if err := copyFileFromTemplate(htmlTmpl, htmlFile); err != nil {
+			return err
+		}
+		if err := copyFileFromTemplate(plainTmpl, plainFile); err != nil {
+			return err
+		}
+
 	}
 	return nil
 }
