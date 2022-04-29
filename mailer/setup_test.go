@@ -24,6 +24,14 @@ var (
 		Jobs:         make(chan Message, 1),
 		Results:      make(chan Result, 1),
 	}
+	dummyMsg = Message{
+		From:        "ignat@senkin.com",
+		FromName:    "Ignat",
+		To:          "senka@ignatov.com",
+		Subject:     "Hi, Senka!",
+		Template:    "test",
+		Attachments: []string{"./testdata/mails/test.html.tmpl"},
+	}
 )
 
 func TestMain(m *testing.M) {
