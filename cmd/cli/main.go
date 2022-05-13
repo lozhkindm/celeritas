@@ -21,7 +21,7 @@ func main() {
 		exitGracefully(err)
 	}
 
-	if err := setup(); err != nil {
+	if err := setup(arg1); err != nil {
 		exitGracefully(err)
 	}
 

@@ -8,7 +8,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func setup() error {
+func setup(arg1 string) error {
+	if arg1 == "new" || arg1 == "version" || arg1 == "help" {
+		return nil
+	}
 	if err := godotenv.Load(); err != nil {
 		return err
 	}

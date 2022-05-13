@@ -16,10 +16,10 @@ func doNew(appName string) error {
 		appName = parts[len(parts)-1]
 	}
 
-	color.Green("\tCloning repository...")
+	color.Green("Cloning repository...")
 
 	_, err := git.PlainClone(fmt.Sprintf("./%s", appName), false, &git.CloneOptions{
-		URL:      "git@github.com/lozhkindm/celeritas-skeleton",
+		URL:      "https://github.com/lozhkindm/celeritas-skeleton.git",
 		Progress: os.Stdout,
 		Depth:    1,
 	})
