@@ -13,6 +13,7 @@ import (
 
 func doNew(appName string) error {
 	appName = strings.ToLower(appName)
+	appURL := appName
 	if strings.Contains(appName, "/") {
 		parts := strings.Split(appName, "/")
 		appName = parts[len(parts)-1]
@@ -70,6 +71,19 @@ func doNew(appName string) error {
 
 	_ = os.Remove(fmt.Sprintf("./%s/Makefile.mac"))
 	_ = os.Remove(fmt.Sprintf("./%s/Makefile.windows"))
+
+	color.Green("Creating go.mod file...")
+
+	_ = os.Remove(fmt.Sprintf("./%s/go.mod", appName))
+	contents, err = templateFS.ReadFile("templates/go.mod.txt")
+	if err != nil {
+		return err
+	}
+	mod := string(contents)
+	mod = strings.ReplaceAll(mod, "${APP_NAME}", appURL)
+	if err := copyDataToFile([]byte(mod), fmt.Sprintf("./%s/go.mod", appName)); err != nil {
+		return err
+	}
 
 	return nil
 }
