@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/fatih/color"
@@ -43,6 +45,31 @@ func doNew(appName string) error {
 	if err := copyDataToFile([]byte(env), fmt.Sprintf("./%s/.env", appName)); err != nil {
 		return err
 	}
+
+	color.Green("Creating Makefile...")
+
+	makefileExt := "mac"
+	if runtime.GOOS == "windows" {
+		makefileExt = "windows"
+	}
+
+	src, err := os.Open(fmt.Sprintf("./%s/Makefile.%s", appName, makefileExt))
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = src.Close()
+	}()
+	dst, err := os.Create(fmt.Sprintf("./%s/Makefile", appName))
+	defer func() {
+		_ = dst.Close()
+	}()
+	if _, err := io.Copy(dst, src); err != nil {
+		return err
+	}
+
+	_ = os.Remove(fmt.Sprintf("./%s/Makefile.mac"))
+	_ = os.Remove(fmt.Sprintf("./%s/Makefile.windows"))
 
 	return nil
 }
