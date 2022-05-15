@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/joho/godotenv"
@@ -80,4 +83,35 @@ func showHelp() {
     make mail <name>      - create two html and plain mail templates
 
 	`)
+}
+
+func updateSourceFiles(path string, fi os.FileInfo, err error) error {
+	if err != nil {
+		return err
+	}
+	if fi.IsDir() {
+		return nil
+	}
+	match, err := filepath.Match("*.go", fi.Name())
+	if err != nil {
+		return err
+	}
+	if !match {
+		return nil
+	}
+	if match {
+		file, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		contents := strings.Replace(string(file), "myapp", appURL, -1)
+		if err := ioutil.WriteFile(path, []byte(contents), 0); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func updateSource() error {
+	return filepath.Walk(".", updateSourceFiles)
 }

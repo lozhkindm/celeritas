@@ -11,9 +11,11 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
+var appURL string
+
 func doNew(appName string) error {
 	appName = strings.ToLower(appName)
-	appURL := appName
+	appURL = appName
 	if strings.Contains(appName, "/") {
 		parts := strings.Split(appName, "/")
 		appName = parts[len(parts)-1]
@@ -69,8 +71,8 @@ func doNew(appName string) error {
 		return err
 	}
 
-	_ = os.Remove(fmt.Sprintf("./%s/Makefile.mac"))
-	_ = os.Remove(fmt.Sprintf("./%s/Makefile.windows"))
+	_ = os.Remove(fmt.Sprintf("./%s/Makefile.mac", appName))
+	_ = os.Remove(fmt.Sprintf("./%s/Makefile.windows", appName))
 
 	color.Green("Creating go.mod file...")
 
@@ -82,6 +84,12 @@ func doNew(appName string) error {
 	mod := string(contents)
 	mod = strings.ReplaceAll(mod, "${APP_NAME}", appURL)
 	if err := copyDataToFile([]byte(mod), fmt.Sprintf("./%s/go.mod", appName)); err != nil {
+		return err
+	}
+
+	color.Green("Updating source files...")
+
+	if err := updateSource(); err != nil {
 		return err
 	}
 
