@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 
@@ -89,9 +90,22 @@ func doNew(appName string) error {
 
 	color.Green("Updating source files...")
 
+	if err := os.Chdir(fmt.Sprintf("./%s", appName)); err != nil {
+		return err
+	}
 	if err := updateSource(); err != nil {
 		return err
 	}
+
+	color.Green("Running go mod tidy...")
+
+	cmd := exec.Command("go", "mod", "tidy")
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	color.Green("Done building %s", appURL)
+	color.Green("Go build something awesome")
 
 	return nil
 }
