@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"strings"
 
 	"github.com/lozhkindm/celeritas/filesystem"
 
@@ -49,8 +50,32 @@ func (m *Minio) Get(dst string, items ...string) error {
 }
 
 func (m *Minio) List(prefix string) ([]filesystem.ListEntry, error) {
-	//TODO implement me
-	panic("implement me")
+	var entries []filesystem.ListEntry
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	client, err := m.getCredentials()
+	if err != nil {
+		return nil, err
+	}
+	objectCh := client.ListObjects(ctx, m.Bucket, minio.ListObjectsOptions{
+		Prefix:    prefix,
+		Recursive: true,
+	})
+	for objectInfo := range objectCh {
+		if objectInfo.Err != nil {
+			return nil, objectInfo.Err
+		}
+		if !strings.HasPrefix(objectInfo.Key, ".") {
+			entries = append(entries, filesystem.ListEntry{
+				Etag:         objectInfo.ETag,
+				LastModified: objectInfo.LastModified,
+				Key:          objectInfo.Key,
+				Size:         float64(objectInfo.Size) / 1024 / 1024, // MB
+			})
+		}
+	}
+	return entries, nil
 }
 
 func (m *Minio) Delete(toDelete []string) bool {
