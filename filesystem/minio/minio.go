@@ -45,8 +45,19 @@ func (m *Minio) Put(filename, folder string) error {
 }
 
 func (m *Minio) Get(dst string, items ...string) error {
-	//TODO implement me
-	panic("implement me")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	client, err := m.getCredentials()
+	if err != nil {
+		return err
+	}
+	for _, item := range items {
+		if err := client.FGetObject(ctx, m.Bucket, item, fmt.Sprintf("%s/%s", dst, path.Base(item)), minio.GetObjectOptions{}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (m *Minio) List(prefix string) ([]filesystem.ListEntry, error) {
