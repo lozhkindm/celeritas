@@ -349,6 +349,7 @@ func (c *Celeritas) createServer() {
 }
 
 func (c *Celeritas) createFileSystem() {
+	c.FileSystems = make(map[string]interface{})
 	if os.Getenv("MINIO_SECRET") != "" {
 		usessl, _ := strconv.ParseBool(os.Getenv("MINIO_USESSL"))
 		c.FileSystems["MINIO"] = minio.Minio{
