@@ -2,13 +2,14 @@ package sftp
 
 import (
 	"fmt"
-	"github.com/lozhkindm/celeritas/filesystem"
-	"github.com/pkg/sftp"
-	"golang.org/x/crypto/ssh"
 	"io"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/lozhkindm/celeritas/filesystem"
+	"github.com/pkg/sftp"
+	"golang.org/x/crypto/ssh"
 )
 
 type SFTP struct {
@@ -38,7 +39,7 @@ func (s *SFTP) getCredentials() (*sftp.Client, error) {
 	return client, nil
 }
 
-func (s *SFTP) Put(filename, folder string) error {
+func (s *SFTP) Put(filename, _ string) error {
 	client, err := s.getCredentials()
 	if err != nil {
 		return err
@@ -70,6 +71,32 @@ func (s *SFTP) Put(filename, folder string) error {
 }
 
 func (s *SFTP) Get(dst string, items ...string) error {
+	client, err := s.getCredentials()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = client.Close()
+	}()
+	for _, item := range items {
+		dstFile, err := os.Create(fmt.Sprintf("%s/%s", dst, path.Base(item)))
+		if err != nil {
+			return err
+		}
+		defer func() {
+			_ = dstFile.Close()
+		}()
+		srcFile, err := client.Open(item)
+		if err != nil {
+			return err
+		}
+		if _, err := io.Copy(dstFile, srcFile); err != nil {
+			return err
+		}
+		if err := dstFile.Sync(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
