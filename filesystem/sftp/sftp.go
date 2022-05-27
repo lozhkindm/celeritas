@@ -2,13 +2,13 @@ package sftp
 
 import (
 	"fmt"
-	"io"
-	"os"
-	"path"
-
 	"github.com/lozhkindm/celeritas/filesystem"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
+	"io"
+	"os"
+	"path"
+	"strings"
 )
 
 type SFTP struct {
@@ -75,6 +75,27 @@ func (s *SFTP) Get(dst string, items ...string) error {
 
 func (s *SFTP) List(prefix string) ([]filesystem.ListEntry, error) {
 	var entries []filesystem.ListEntry
+	client, err := s.getCredentials()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = client.Close()
+	}()
+	files, err := client.ReadDir(prefix)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range files {
+		if !strings.HasPrefix(file.Name(), ".") {
+			entries = append(entries, filesystem.ListEntry{
+				LastModified: file.ModTime(),
+				Key:          file.Name(),
+				Size:         float64(file.Size()) / 1024 / 1024, // MB
+				IsDir:        file.IsDir(),
+			})
+		}
+	}
 	return entries, nil
 }
 
