@@ -2,6 +2,7 @@ package webdav
 
 import (
 	"github.com/lozhkindm/celeritas/filesystem"
+	"io"
 	"os"
 	"path"
 	"strings"
@@ -31,6 +32,29 @@ func (w *WebDAV) Put(filename, folder string) error {
 }
 
 func (w *WebDAV) Get(dst string, items ...string) error {
+	client := gowebdav.NewClient(w.Host, w.User, w.Password)
+	for _, item := range items {
+		err := func() error {
+			dstFile, err := os.Create(path.Join(dst, path.Base(item)))
+			if err != nil {
+				return err
+			}
+			defer func() {
+				_ = dstFile.Close()
+			}()
+			reader, err := client.ReadStream(item)
+			if err != nil {
+				return err
+			}
+			if _, err := io.Copy(dstFile, reader); err != nil {
+				return err
+			}
+			return nil
+		}()
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
