@@ -55,5 +55,11 @@ func (w *WebDAV) List(prefix string) ([]filesystem.ListEntry, error) {
 }
 
 func (w *WebDAV) Delete(toDelete []string) (bool, error) {
+	client := gowebdav.NewClient(w.Host, w.User, w.Password)
+	for _, file := range toDelete {
+		if err := client.Remove(file); err != nil {
+			return false, err
+		}
+	}
 	return true, nil
 }
