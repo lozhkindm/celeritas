@@ -1,10 +1,10 @@
 package webdav
 
 import (
+	"github.com/lozhkindm/celeritas/filesystem"
 	"os"
 	"path"
-
-	"github.com/lozhkindm/celeritas/filesystem"
+	"strings"
 
 	"github.com/studio-b12/gowebdav"
 )
@@ -36,6 +36,21 @@ func (w *WebDAV) Get(dst string, items ...string) error {
 
 func (w *WebDAV) List(prefix string) ([]filesystem.ListEntry, error) {
 	var entries []filesystem.ListEntry
+	client := gowebdav.NewClient(w.Host, w.User, w.Password)
+	files, err := client.ReadDir(prefix)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range files {
+		if !strings.HasPrefix(file.Name(), ".") {
+			entries = append(entries, filesystem.ListEntry{
+				LastModified: file.ModTime(),
+				Key:          file.Name(),
+				Size:         float64(file.Size()) / 1024 / 1024, // MB
+				IsDir:        file.IsDir(),
+			})
+		}
+	}
 	return entries, nil
 }
 
