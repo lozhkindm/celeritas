@@ -10,6 +10,7 @@ import (
 
 	"github.com/lozhkindm/celeritas/cache"
 	"github.com/lozhkindm/celeritas/filesystem/minio"
+	"github.com/lozhkindm/celeritas/filesystem/s3"
 	"github.com/lozhkindm/celeritas/filesystem/sftp"
 	"github.com/lozhkindm/celeritas/filesystem/webdav"
 	"github.com/lozhkindm/celeritas/mailer"
@@ -376,6 +377,15 @@ func (c *Celeritas) createFileSystem() {
 			Host:     os.Getenv("WEBDAV_HOST"),
 			User:     os.Getenv("WEBDAV_USER"),
 			Password: os.Getenv("WEBDAV_PASSWORD"),
+		}
+	}
+	if os.Getenv("S3_KEY") != "" {
+		c.FileSystems["S3"] = s3.S3{
+			Key:      os.Getenv("S3_KEY"),
+			Secret:   os.Getenv("S3_SECRET"),
+			Region:   os.Getenv("S3_REGION"),
+			Endpoint: os.Getenv("S3_ENDPOINT"),
+			Bucket:   os.Getenv("S3_BUCKET"),
 		}
 	}
 }
