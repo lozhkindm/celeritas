@@ -58,6 +58,33 @@ func (s *S3) Put(filename, folder string) error {
 }
 
 func (s *S3) Get(dst string, items ...string) error {
+	sess := session.Must(session.NewSession(&aws.Config{
+		Endpoint:    aws.String(s.Endpoint),
+		Region:      aws.String(s.Region),
+		Credentials: credentials.NewStaticCredentials(s.Key, s.Secret, ""),
+	}))
+	for _, item := range items {
+		err := func() error {
+			file, err := os.Create(path.Join(dst, path.Base(item)))
+			if err != nil {
+				return err
+			}
+			defer func() {
+				_ = file.Close()
+			}()
+			input := &s3.GetObjectInput{
+				Bucket: aws.String(s.Bucket),
+				Key:    aws.String(item),
+			}
+			if _, err := s3manager.NewDownloader(sess).Download(file, input); err != nil {
+				return err
+			}
+			return nil
+		}()
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
