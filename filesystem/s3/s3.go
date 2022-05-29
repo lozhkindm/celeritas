@@ -39,21 +39,17 @@ func (s *S3) Put(filename, folder string) error {
 	if _, err := file.Read(bts); err != nil {
 		return err
 	}
-	reader := bytes.NewReader(bts)
-	filetype := http.DetectContentType(bts)
-	client := credentials.NewStaticCredentials(s.Key, s.Secret, "")
 	sess := session.Must(session.NewSession(&aws.Config{
 		Endpoint:    aws.String(s.Endpoint),
 		Region:      aws.String(s.Region),
-		Credentials: client,
+		Credentials: credentials.NewStaticCredentials(s.Key, s.Secret, ""),
 	}))
-	uploader := s3manager.NewUploader(sess)
-	_, err = uploader.Upload(&s3manager.UploadInput{
+	_, err = s3manager.NewUploader(sess).Upload(&s3manager.UploadInput{
 		Bucket:      aws.String(s.Bucket),
 		Key:         aws.String(path.Join(folder, path.Base(filename))),
-		Body:        reader,
+		Body:        bytes.NewReader(bts),
 		ACL:         aws.String("public-read"),
-		ContentType: aws.String(filetype),
+		ContentType: aws.String(http.DetectContentType(bts)),
 	})
 	if err != nil {
 		return err
@@ -67,18 +63,15 @@ func (s *S3) Get(dst string, items ...string) error {
 
 func (s *S3) List(prefix string) ([]filesystem.ListEntry, error) {
 	var entries []filesystem.ListEntry
-	client := credentials.NewStaticCredentials(s.Key, s.Secret, "")
 	sess := session.Must(session.NewSession(&aws.Config{
 		Endpoint:    aws.String(s.Endpoint),
 		Region:      aws.String(s.Region),
-		Credentials: client,
+		Credentials: credentials.NewStaticCredentials(s.Key, s.Secret, ""),
 	}))
-	service := s3.New(sess)
-	input := &s3.ListObjectsInput{
+	result, err := s3.New(sess).ListObjects(&s3.ListObjectsInput{
 		Bucket: aws.String(s.Bucket),
 		Prefix: aws.String(prefix),
-	}
-	result, err := service.ListObjects(input)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -94,5 +87,24 @@ func (s *S3) List(prefix string) ([]filesystem.ListEntry, error) {
 }
 
 func (s *S3) Delete(toDelete []string) (bool, error) {
+	sess := session.Must(session.NewSession(&aws.Config{
+		Endpoint:    aws.String(s.Endpoint),
+		Region:      aws.String(s.Region),
+		Credentials: credentials.NewStaticCredentials(s.Key, s.Secret, ""),
+	}))
+	var objects []*s3.ObjectIdentifier
+	for _, file := range toDelete {
+		objects = append(objects, &s3.ObjectIdentifier{Key: aws.String(file)})
+	}
+	input := &s3.DeleteObjectsInput{
+		Bucket: aws.String(s.Bucket),
+		Delete: &s3.Delete{
+			Objects: objects,
+			Quiet:   aws.Bool(false),
+		},
+	}
+	if _, err := s3.New(sess).DeleteObjects(input); err != nil {
+		return false, err
+	}
 	return true, nil
 }
