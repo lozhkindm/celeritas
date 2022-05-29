@@ -1,12 +1,18 @@
 package s3
 
 import (
+	"bytes"
+	"net/http"
+	"os"
+	"path"
+
 	"github.com/lozhkindm/celeritas/filesystem"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 type S3 struct {
@@ -18,6 +24,40 @@ type S3 struct {
 }
 
 func (s *S3) Put(filename, folder string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+	fileinfo, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	bts := make([]byte, fileinfo.Size())
+	if _, err := file.Read(bts); err != nil {
+		return err
+	}
+	reader := bytes.NewReader(bts)
+	filetype := http.DetectContentType(bts)
+	client := credentials.NewStaticCredentials(s.Key, s.Secret, "")
+	sess := session.Must(session.NewSession(&aws.Config{
+		Endpoint:    aws.String(s.Endpoint),
+		Region:      aws.String(s.Region),
+		Credentials: client,
+	}))
+	uploader := s3manager.NewUploader(sess)
+	_, err = uploader.Upload(&s3manager.UploadInput{
+		Bucket:      aws.String(s.Bucket),
+		Key:         aws.String(path.Join(folder, path.Base(filename))),
+		Body:        reader,
+		ACL:         aws.String("public-read"),
+		ContentType: aws.String(filetype),
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
