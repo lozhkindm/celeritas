@@ -11,6 +11,7 @@ import (
 	"github.com/lozhkindm/celeritas/cache"
 	"github.com/lozhkindm/celeritas/filesystem/minio"
 	"github.com/lozhkindm/celeritas/filesystem/sftp"
+	"github.com/lozhkindm/celeritas/filesystem/webdav"
 	"github.com/lozhkindm/celeritas/mailer"
 	"github.com/lozhkindm/celeritas/render"
 	"github.com/lozhkindm/celeritas/session"
@@ -368,6 +369,13 @@ func (c *Celeritas) createFileSystem() {
 			User:     os.Getenv("SFTP_USER"),
 			Password: os.Getenv("SFTP_PASSWORD"),
 			Port:     os.Getenv("SFTP_PORT"),
+		}
+	}
+	if os.Getenv("WEBDAV_HOST") != "" {
+		c.FileSystems["WEBDAV"] = webdav.WebDAV{
+			Host:     os.Getenv("WEBDAV_HOST"),
+			User:     os.Getenv("WEBDAV_USER"),
+			Password: os.Getenv("WEBDAV_PASSWORD"),
 		}
 	}
 }
