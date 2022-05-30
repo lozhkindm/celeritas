@@ -1,7 +1,9 @@
 package celeritas
 
 import (
+	"errors"
 	"fmt"
+	"github.com/gabriel-vasile/mimetype"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -41,6 +43,17 @@ func getFileToUpload(r *http.Request, field string) (string, error) {
 		_ = file.Close()
 	}(file)
 
+	mime, err := mimetype.DetectReader(file)
+	if err != nil {
+		return "", err
+	}
+	if _, err := file.Seek(0, 0); err != nil {
+		return "", err
+	}
+	if !isValidMime(mime.String()) {
+		return "", errors.New("invalid file type")
+	}
+
 	dst, err := os.Create(fmt.Sprintf("./tmp/%s", header.Filename))
 	if err != nil {
 		return "", err
@@ -54,4 +67,14 @@ func getFileToUpload(r *http.Request, field string) (string, error) {
 	}
 
 	return fmt.Sprintf("./tmp/%s", header.Filename), nil
+}
+
+func isValidMime(mime string) bool {
+	valid := []string{"image/gif", "image/jpeg", "image/png", "application/pdf"}
+	for _, v := range valid {
+		if mime == v {
+			return true
+		}
+	}
+	return false
 }
