@@ -16,6 +16,11 @@ import (
 
 func (c *Celeritas) UploadFile(r *http.Request, field, dst string, fs filesystem.FileSystem) error {
 	filename, err := c.getFileToUpload(r, field)
+	defer func() {
+		if err := os.Remove(filename); err != nil {
+			c.ErrorLog.Println(err)
+		}
+	}()
 	if err != nil {
 		return err
 	}
