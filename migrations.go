@@ -4,11 +4,20 @@ import (
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gobuffalo/pop"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
+
+func (c *Celeritas) popConnect() (*pop.Connection, error) {
+	tx, err := pop.Connect("development")
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
 
 func (c *Celeritas) MigrateUp(dsn string) error {
 	m, err := migrate.New(fmt.Sprintf("file://%s/migrations", c.RootPath), dsn)
