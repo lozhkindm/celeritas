@@ -2,6 +2,7 @@ package celeritas
 
 import (
 	"fmt"
+	"path"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/pop"
@@ -17,6 +18,13 @@ func (c *Celeritas) popConnect() (*pop.Connection, error) {
 		return nil, err
 	}
 	return tx, nil
+}
+
+func (c *Celeritas) CreatePopMigration(up, down []byte, name, ext string) error {
+	if err := pop.MigrationCreate(path.Join(c.RootPath, "migrations"), name, ext, up, down); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *Celeritas) MigrateUp(dsn string) error {
