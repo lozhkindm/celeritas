@@ -27,6 +27,17 @@ func (c *Celeritas) CreatePopMigration(up, down []byte, name, ext string) error 
 	return nil
 }
 
+func (c *Celeritas) RunPopMigrations(tx *pop.Connection) error {
+	migrator, err := pop.NewFileMigrator(path.Join(c.RootPath, "migrations"), tx)
+	if err != nil {
+		return err
+	}
+	if err := migrator.Up(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *Celeritas) MigrateUp(dsn string) error {
 	m, err := migrate.New(fmt.Sprintf("file://%s/migrations", c.RootPath), dsn)
 	if err != nil {
