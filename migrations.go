@@ -38,6 +38,21 @@ func (c *Celeritas) RunPopMigrations(tx *pop.Connection) error {
 	return nil
 }
 
+func (c *Celeritas) RollbackPopMigrations(tx *pop.Connection, steps ...int) error {
+	step := 1
+	if len(steps) > 0 {
+		step = steps[0]
+	}
+	migrator, err := pop.NewFileMigrator(path.Join(c.RootPath, "migrations"), tx)
+	if err != nil {
+		return err
+	}
+	if err := migrator.Down(step); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *Celeritas) MigrateUp(dsn string) error {
 	m, err := migrate.New(fmt.Sprintf("file://%s/migrations", c.RootPath), dsn)
 	if err != nil {
