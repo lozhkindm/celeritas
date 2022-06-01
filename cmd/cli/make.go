@@ -4,33 +4,36 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/fatih/color"
 	"github.com/gertd/go-pluralize"
 	"github.com/iancoleman/strcase"
 )
 
-func doMake(arg2, arg3 string) error {
+func doMake(arg2, arg3, arg4 string) error {
 	switch arg2 {
 	case "key":
-		rand := cel.RandStr(32)
-		color.Yellow("Encryption key: %s", rand)
+		color.Yellow("Encryption key: %s", cel.RandStr(32))
 	case "migration":
 		if arg3 == "" {
 			return errors.New("you must give the migration a name")
 		}
-
-		dbType := cel.DB.DataType
-		filename := fmt.Sprintf("%d_%s", time.Now().UnixMicro(), arg3)
-		upFile := fmt.Sprintf("%s/migrations/%s.%s.up.sql", cel.RootPath, filename, dbType)
-		downFile := fmt.Sprintf("%s/migrations/%s.%s.down.sql", cel.RootPath, filename, dbType)
-		upTmpl := fmt.Sprintf("templates/migrations/migration.%s.up.sql", dbType)
-		downTmpl := fmt.Sprintf("templates/migrations/migration.%s.down.sql", dbType)
-		if err := copyFileFromTemplate(upTmpl, upFile); err != nil {
-			return err
+		var (
+			up, down []byte
+			ext      = "pop"
+			err      error
+		)
+		if arg4 == "pop" || arg4 == "" {
+			if up, err = templateFS.ReadFile("templates/migrations/migration.up.pop"); err != nil {
+				return err
+			}
+			if down, err = templateFS.ReadFile("templates/migrations/migration.down.pop"); err != nil {
+				return err
+			}
+		} else {
+			ext = "sql"
 		}
-		if err := copyFileFromTemplate(downTmpl, downFile); err != nil {
+		if err := cel.CreatePopMigration(up, down, arg3, ext); err != nil {
 			return err
 		}
 	case "auth":

@@ -1,0 +1,4 @@
+create_table("table") {
+    t.Column("id", "integer", {primary: true})
+    t.Column("column", "string", {"size": 255})
+}
