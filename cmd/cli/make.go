@@ -15,6 +15,9 @@ func doMake(arg2, arg3, arg4 string) error {
 	case "key":
 		color.Yellow("Encryption key: %s", cel.RandStr(32))
 	case "migration":
+		if err := checkDB(); err != nil {
+			return err
+		}
 		if arg3 == "" {
 			return errors.New("you must give the migration a name")
 		}

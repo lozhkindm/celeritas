@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -69,17 +71,17 @@ func getDSN() string {
 func showHelp() {
 	color.Yellow(`Available commands:
 
-    help                  - show the help commands
-    version               - print application version
-    migrate               - runs all up migrations that have not been run previously
-    migrate down          - reverses the most recent migration
-    migrate reset         - runs all down migrations in reverse order, and then all up migrations
-    make migration <name> - creates two new up and down migrations in the migrations folder
-    make auth             - prepares auth functionality
-    make handler <name>   - creates a stub handler in the handlers folder
-    make model <name>     - creates a new model in the data folder
-    make session          - creates a table in the database as a session store
-    make mail <name>      - create two html and plain mail templates
+    help                           - show the help commands
+    version                        - print application version
+    migrate                        - runs all up migrations that have not been run previously
+    migrate down                   - reverses the most recent migration
+    migrate reset                  - runs all down migrations in reverse order, and then all up migrations
+    make migration <name> <format> - creates two new up and down migrations in the migrations folder (format=pop,sql)
+    make auth                      - prepares auth functionality
+    make handler <name>            - creates a stub handler in the handlers folder
+    make model <name>              - creates a new model in the data folder
+    make session                   - creates a table in the database as a session store
+    make mail <name>               - create two html and plain mail templates
 
 	`)
 }
@@ -113,4 +115,14 @@ func updateSourceFiles(path string, fi os.FileInfo, err error) error {
 
 func updateSource() error {
 	return filepath.Walk(".", updateSourceFiles)
+}
+
+func checkDB() error {
+	if cel.DB.DataType == "" {
+		return errors.New("no database connection provided")
+	}
+	if !fileExists(path.Join(cel.RootPath, "config", "database.yml")) {
+		return errors.New("database.yml does not exist in a config folder")
+	}
+	return nil
 }
