@@ -15,9 +15,12 @@ require (
 	github.com/bwmarrin/go-alone v0.0.0-20190806015146-742bb55d1631
 	github.com/dgraph-io/badger/v3 v3.2103.2
 	github.com/fatih/color v1.13.0
+	github.com/gabriel-vasile/mimetype v1.4.0
 	github.com/gertd/go-pluralize v0.2.0
 	github.com/go-chi/chi/v5 v5.0.7
+	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/gobuffalo/pop v4.13.1+incompatible
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/gomodule/redigo v1.8.8
 	github.com/iancoleman/strcase v0.2.0
@@ -25,10 +28,14 @@ require (
 	github.com/jackc/pgx/v4 v4.14.1
 	github.com/joho/godotenv v1.4.0
 	github.com/justinas/nosurf v1.1.1
+	github.com/minio/minio-go/v7 v7.0.26
 	github.com/ory/dockertest/v3 v3.8.1
+	github.com/pkg/sftp v1.13.4
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/studio-b12/gowebdav v0.0.0-20220128162035-c7b1ff8a5e62
 	github.com/vanng822/go-premailer v1.20.1
 	github.com/xhit/go-simple-mail/v2 v2.11.0
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 )
 
 require (
@@ -57,10 +64,8 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
-	github.com/go-git/go-git/v5 v5.4.2 // indirect
 	github.com/gobuffalo/envy v1.10.1 // indirect
 	github.com/gobuffalo/fizz v1.14.0 // indirect
 	github.com/gobuffalo/flect v0.2.4 // indirect
@@ -72,8 +77,6 @@ require (
 	github.com/gobuffalo/nulls v0.4.1 // indirect
 	github.com/gobuffalo/packd v1.0.1 // indirect
 	github.com/gobuffalo/plush/v4 v4.1.9 // indirect
-	github.com/gobuffalo/pop v4.13.1+incompatible // indirect
-	github.com/gobuffalo/syncx v0.0.0-20190224160051-33c29581e754 // indirect
 	github.com/gobuffalo/tags/v3 v3.1.2 // indirect
 	github.com/gobuffalo/validate v2.0.4+incompatible // indirect
 	github.com/gobuffalo/validate/v3 v3.3.1 // indirect
@@ -115,7 +118,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.9 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.16 // indirect
 	github.com/minio/md5-simd v1.1.0 // indirect
-	github.com/minio/minio-go/v7 v7.0.26 // indirect
 	github.com/minio/sha256-simd v0.1.1 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
@@ -126,16 +128,15 @@ require (
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/opencontainers/runc v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pkg/sftp v1.13.4 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/rs/xid v1.2.1 // indirect
 	github.com/sendgrid/rest v2.6.3+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.8.0+incompatible // indirect
+	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/sourcegraph/annotate v0.0.0-20160123013949-f4cad6c6324d // indirect
 	github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e // indirect
-	github.com/studio-b12/gowebdav v0.0.0-20220128162035-c7b1ff8a5e62 // indirect
 	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
 	github.com/vanng822/css v1.0.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
@@ -145,7 +146,6 @@ require (
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c // indirect

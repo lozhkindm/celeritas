@@ -23,14 +23,14 @@ func doMake(arg2, arg3, arg4 string) error {
 		}
 		var (
 			up, down []byte
-			ext      = "pop"
+			ext      = "fizz"
 			err      error
 		)
 		if arg4 == "pop" || arg4 == "" {
-			if up, err = templateFS.ReadFile("templates/migrations/migration.up.pop"); err != nil {
+			if up, err = templateFS.ReadFile("templates/migrations/migration.up.fizz"); err != nil {
 				return err
 			}
-			if down, err = templateFS.ReadFile("templates/migrations/migration.down.pop"); err != nil {
+			if down, err = templateFS.ReadFile("templates/migrations/migration.down.fizz"); err != nil {
 				return err
 			}
 		} else {

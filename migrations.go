@@ -5,9 +5,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gobuffalo/pop"
-	_ "github.com/golang-migrate/migrate/v4/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func (c *Celeritas) PopConnect() (*pop.Connection, error) {
