@@ -2,12 +2,22 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/fatih/color"
 )
 
 func doAuth() error {
+	if err := checkDB(); err != nil {
+		return err
+	}
+	tx, err := cel.PopConnect()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = tx.Close()
+	}()
+
 	// create auth migrations
 	dbType := cel.DB.DataType
 	if dbType == "mariadb" {
@@ -17,20 +27,20 @@ func doAuth() error {
 		dbType = "postgres"
 	}
 
-	filename := fmt.Sprintf("%d_create_auth_tables", time.Now().UnixMicro())
 	upTmpl := fmt.Sprintf("templates/migrations/auth/%s.up.sql", dbType)
+	up, err := templateFS.ReadFile(upTmpl)
+	if err != nil {
+		return err
+	}
 	downTmpl := fmt.Sprintf("templates/migrations/auth/%s.down.sql", dbType)
-	upFile := fmt.Sprintf("%s/migrations/%s.%s.up.sql", cel.RootPath, filename, dbType)
-	downFile := fmt.Sprintf("%s/migrations/%s.%s.down.sql", cel.RootPath, filename, dbType)
-	if err := copyFileFromTemplate(upTmpl, upFile); err != nil {
+	down, err := templateFS.ReadFile(downTmpl)
+	if err != nil {
 		return err
 	}
-	if err := copyFileFromTemplate(downTmpl, downFile); err != nil {
+	if err := cel.CreatePopMigration(up, down, "auth", "sql"); err != nil {
 		return err
 	}
-
-	// run auth migrations
-	if err := doMigrate("up", ""); err != nil {
+	if err := cel.MigrateUp(tx); err != nil {
 		return err
 	}
 
