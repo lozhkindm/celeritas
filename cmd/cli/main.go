@@ -28,6 +28,14 @@ func main() {
 	switch arg1 {
 	case "help":
 		showHelp()
+	case "up":
+		if err := maintenanceMode(true); err != nil {
+			exitGracefully(err)
+		}
+	case "down":
+		if err := maintenanceMode(false); err != nil {
+			exitGracefully(err)
+		}
 	case "new":
 		if arg2 == "" {
 			exitGracefully(errors.New("new required an application name"))
