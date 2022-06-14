@@ -29,11 +29,11 @@ func main() {
 	case "help":
 		showHelp()
 	case "up":
-		if err := maintenanceMode(true); err != nil {
+		if err := maintenanceMode(false); err != nil {
 			exitGracefully(err)
 		}
 	case "down":
-		if err := maintenanceMode(false); err != nil {
+		if err := maintenanceMode(true); err != nil {
 			exitGracefully(err)
 		}
 	case "new":
